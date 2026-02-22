@@ -1,117 +1,82 @@
-# IntelliJ Platform Plugin Template
+# AAM (Abstract Alias Mapping) Support for JetBrains IDEs
 
-[![Twitter Follow](https://img.shields.io/badge/follow-%40JBPlatform-1DA1F2?logo=twitter)](https://twitter.com/JBPlatform)
-[![Developers Forum](https://img.shields.io/badge/JetBrains%20Platform-Join-blue)][jb:forum]
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![JetBrains Plugin](https://img.shields.io/badge/JetBrains-Plugin-green.svg)
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
-## Plugin template structure
+A JetBrains IDE plugin (IntelliJ IDEA, RustRover, CLion, PyCharm, etc.) that adds language support for the **AAM (Abstract Alias Mapping)** configuration format.
 
-A generated project contains the following content structure:
+AAM is a robust and lightweight configuration parser designed for flexible configuration files with references, aliases, and a modular structure.
 
+## 🚀 Features
+
+This plugin makes editing `.aam` files easier and more efficient:
+
+- **Syntax Highlighting**: Proper coloring for keys, values, strings, and comments.
+- **Directive Support**: distinct highlighting for special directives like `@import`.
+- **Comment Handling**: Recognizes lines starting with `#` as comments.
+- **Quote Matching**: Automatic pairing and highlighting for quoted string values.
+- **Structure View**: (Planned) Visual hierarchy of keys and imported files.
+
+## 📦 Installation
+
+### Install via Plugin Marketplace
+1. Open **Settings/Preferences** in your IDE.
+2. Go to **Plugins** > **Marketplace**.
+3. Search for `AAM Support`.
+4. Click **Install** and restart the IDE.
+
+### Install from Disk
+1. Download the latest `.zip` release from the [Releases](../../releases) page.
+2. Open **Settings/Preferences** > **Plugins**.
+3. Click the ⚙️ icon and select **Install Plugin from Disk...**.
+4. Select the downloaded archive and restart the IDE.
+
+## AAM Format Syntax
+
+The AAM format is line-based, supporting simple `key = value` pairs, deep resolution, and circular dependency handling.
+
+```aam
+# This is a comment
+host = "localhost"
+port = 8080
+
+# Import other configuration files
+@import "database.aam"
+
+# Deep resolution and aliases
+base_path = /var/www
+current_path = base_path
+
+# Circular references are handled safely by the parser
+loop_a = loop_b
+loop_b = loop_a
 ```
-.
-├── .run/                   Predefined Run/Debug Configurations
-├── build/                  Output build directory
-├── gradle
-│   ├── wrapper/            Gradle Wrapper
-├── src                     Plugin sources
-│   ├── main
-│   │   ├── kotlin/         Kotlin production sources
-│   │   └── resources/      Resources - plugin.xml, icons, messages
-├── .gitignore              Git ignoring rules
-├── build.gradle.kts        Gradle build configuration
-├── gradle.properties       Gradle configuration properties
-├── gradlew                 *nix Gradle Wrapper script
-├── gradlew.bat             Windows Gradle Wrapper script
-├── README.md               README
-└── settings.gradle.kts     Gradle project settings
-```
 
-In addition to the configuration files, the most crucial part is the `src` directory, which contains our implementation
-and the manifest for our plugin – [plugin.xml][file:plugin.xml].
+## Building from Source
 
-> [!NOTE]
-> To use Java in your plugin, create the `/src/main/java` directory.
+To build the plugin locally:
 
-## Plugin configuration file
+    Clone the repository:
+    Bash
 
-The plugin configuration file is a [plugin.xml][file:plugin.xml] file located in the `src/main/resources/META-INF`
-directory.
-It provides general information about the plugin, its dependencies, extensions, and listeners.
+    git clone [https://github.com/your-username/aam-jetbrains-plugin.git](https://github.com/your-username/aam-jetbrains-plugin.git)
 
-You can read more about this file in the [Plugin Configuration File][docs:plugin.xml] section of our documentation.
+    Build using Gradle:
+    Bash
 
-If you're still not quite sure what this is all about, read our
-introduction: [What is the IntelliJ Platform?][docs:intro]
+    ./gradlew buildPlugin
 
-$H$H Predefined Run/Debug configurations
+    The resulting ZIP file will be located in build/distributions/.
 
-Within the default project structure, there is a `.run` directory provided containing predefined *Run/Debug
-configurations* that expose corresponding Gradle tasks:
+## Related Projects
 
-| Configuration name | Description                                                                                                                                                                         |
-|--------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Run Plugin         | Runs [`:runIde`][gh:intellij-platform-gradle-plugin-runIde] IntelliJ Platform Gradle Plugin task. Use the *Debug* icon for plugin debugging.                                        |
-| Run Tests          | Runs [`:test`][gradle:lifecycle-tasks] Gradle task.                                                                                                                                 |
-| Run Verifications  | Runs [`:verifyPlugin`][gh:intellij-platform-gradle-plugin-verifyPlugin] IntelliJ Platform Gradle Plugin task to check the plugin compatibility against the specified IntelliJ IDEs. |
+This plugin is designed to support the AAM language ecosystem. The core parser is written in Rust.
 
-> [!NOTE]
-> You can find the logs from the running task in the `idea.log` tab.
+    Rust Crate: aaml (Current version: 1.0.5)
 
-## Publishing the plugin
+    Capabilities: The core library supports deep recursive lookup (find_deep), bidirectional lookup (find_obj), and configuration merging.
 
-> [!TIP]
-> Make sure to follow all guidelines listed in [Publishing a Plugin][docs:publishing] to follow all recommended and
-> required steps.
+## License
 
-Releasing a plugin to [JetBrains Marketplace](https://plugins.jetbrains.com) is a straightforward operation that uses
-the `publishPlugin` Gradle task provided by
-the [intellij-platform-gradle-plugin][gh:intellij-platform-gradle-plugin-docs].
-
-You can also upload the plugin to the [JetBrains Plugin Repository](https://plugins.jetbrains.com/plugin/upload)
-manually via UI.
-
-## Useful links
-
-- [IntelliJ Platform SDK Plugin SDK][docs]
-- [IntelliJ Platform Gradle Plugin Documentation][gh:intellij-platform-gradle-plugin-docs]
-- [IntelliJ Platform Explorer][jb:ipe]
-- [JetBrains Marketplace Quality Guidelines][jb:quality-guidelines]
-- [IntelliJ Platform UI Guidelines][jb:ui-guidelines]
-- [JetBrains Marketplace Paid Plugins][jb:paid-plugins]
-- [IntelliJ SDK Code Samples][gh:code-samples]
-
-[docs]: https://plugins.jetbrains.com/docs/intellij
-
-[docs:intro]: https://plugins.jetbrains.com/docs/intellij/intellij-platform.html?from=IJPluginTemplate
-
-[docs:plugin.xml]: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html?from=IJPluginTemplate
-
-[docs:publishing]: https://plugins.jetbrains.com/docs/intellij/publishing-plugin.html?from=IJPluginTemplate
-
-[file:plugin.xml]: ./src/main/resources/META-INF/plugin.xml
-
-[gh:code-samples]: https://github.com/JetBrains/intellij-sdk-code-samples
-
-[gh:intellij-platform-gradle-plugin]: https://github.com/JetBrains/intellij-platform-gradle-plugin
-
-[gh:intellij-platform-gradle-plugin-docs]: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin.html
-
-[gh:intellij-platform-gradle-plugin-runIde]: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-tasks.html#runIde
-
-[gh:intellij-platform-gradle-plugin-verifyPlugin]: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-tasks.html#verifyPlugin
-
-[gradle:lifecycle-tasks]: https://docs.gradle.org/current/userguide/java_plugin.html#lifecycle_tasks
-
-[jb:github]: https://github.com/JetBrains/.github/blob/main/profile/README.md
-
-[jb:forum]: https://platform.jetbrains.com/
-
-[jb:quality-guidelines]: https://plugins.jetbrains.com/docs/marketplace/quality-guidelines.html
-
-[jb:paid-plugins]: https://plugins.jetbrains.com/docs/marketplace/paid-plugins-marketplace.html
-
-[jb:quality-guidelines]: https://plugins.jetbrains.com/docs/marketplace/quality-guidelines.html
-
-[jb:ipe]: https://jb.gg/ipe
-
-[jb:ui-guidelines]: https://jetbrains.github.io/ui
+Distributed under the MIT License. See LICENSE for more information.
