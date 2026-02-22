@@ -2,83 +2,79 @@ package com.ininids.aamhelper.language
 
 import com.intellij.formatting.*
 import com.intellij.lang.ASTNode
-import com.intellij.openapi.util.TextRange
+import com.intellij.psi.TokenType
 import com.intellij.psi.codeStyle.CodeStyleSettings
+import com.intellij.psi.formatter.common.AbstractBlock
 
 class AamFormattingModelBuilder : FormattingModelBuilder {
     override fun createModel(formattingContext: FormattingContext): FormattingModel {
         val codeStyleSettings = formattingContext.codeStyleSettings
-        return FormattingModelProvider
-            .createFormattingModelForPsiFile(
-                formattingContext.psiElement.containingFile,
-                AamBlock(formattingContext.node, Wrap.createWrap(WrapType.NONE, false), Alignment.createAlignment(), createSpaceBuilder(codeStyleSettings)),
-                codeStyleSettings
-            )
+        return FormattingModelProvider.createFormattingModelForPsiFile(
+            formattingContext.containingFile,
+            AamBlock(
+                formattingContext.node,
+                Wrap.createWrap(WrapType.NONE, false),
+                null,
+                createSpaceBuilder(codeStyleSettings)
+            ),
+            codeStyleSettings
+        )
     }
 
     private fun createSpaceBuilder(settings: CodeStyleSettings): SpacingBuilder {
         return SpacingBuilder(settings, AamLanguage)
-            .before(AamElementTypes.PROPERTY)
-            .blankLines(0)
-            .before(AamElementTypes.IMPORT_STATEMENT)
-            .none()
+            .around(AamTokenTypes.EQUALS).spacing(1, 1, 0, false, 0)
     }
 }
 
 class AamBlock(
-    private val myNode: ASTNode,
-    private val myWrap: Wrap?,
-    private val myAlignment: Alignment?,
-    private val mySpacingBuilder: SpacingBuilder
-) : Block {
+    node: ASTNode,
+    wrap: Wrap?,
+    alignment: Alignment?,
+    private val mySpacingBuilder: SpacingBuilder,
+    private val myIndent: Indent = Indent.getNoneIndent()
+) : AbstractBlock(node, wrap, alignment) {
 
-    override fun getTextRange(): TextRange {
-        return myNode.textRange
-    }
-
-    override fun getSubBlocks(): List<Block> {
+    override fun buildChildren(): List<Block> {
         val blocks = ArrayList<Block>()
+        val insideSchema = myNode.elementType == AamElementTypes.SCHEMA_DECLARATION
         var child = myNode.firstChildNode
         while (child != null) {
-            if (child.elementType !== com.intellij.psi.TokenType.WHITE_SPACE) {
-                val block = AamBlock(
-                    child,
-                    Wrap.createWrap(WrapType.NONE, false),
-                    Alignment.createAlignment(),
-                    mySpacingBuilder
+            if (child.elementType != TokenType.WHITE_SPACE && child.textLength > 0) {
+                val childIndent = if (insideSchema) {
+                    when (child.elementType) {
+                        AamTokenTypes.LBRACE,
+                        AamTokenTypes.RBRACE,
+                        AamTokenTypes.SCHEMA_NAME,
+                        AamTokenTypes.SCHEMA_KEYWORD -> Indent.getNoneIndent()
+                        else -> Indent.getNormalIndent()
+                    }
+                } else {
+                    Indent.getNoneIndent()
+                }
+                blocks.add(
+                    AamBlock(child, Wrap.createWrap(WrapType.NONE, false), null, mySpacingBuilder, childIndent)
                 )
-                blocks.add(block)
             }
             child = child.treeNext
         }
         return blocks
     }
 
-    override fun getWrap(): Wrap? {
-        return myWrap
-    }
-
-    override fun getIndent(): Indent? {
-        return Indent.getNoneIndent()
-    }
-
-    override fun getAlignment(): Alignment? {
-        return myAlignment
-    }
-
-    override fun getSpacing(child1: Block?, child2: Block): Spacing? {
-        return mySpacingBuilder.getSpacing(this, child1, child2)
-    }
-
-    override fun isLeaf(): Boolean {
-        return myNode.firstChildNode == null
-    }
-
-    override fun isIncomplete(): Boolean {
-        return false
-    }
+    override fun getIndent(): Indent = myIndent
 
     override fun getChildAttributes(newChildIndex: Int): ChildAttributes {
+        if (myNode.elementType == AamElementTypes.SCHEMA_DECLARATION) {
+            val prev = subBlocks.getOrNull(newChildIndex - 1) as? AamBlock
+            if (prev?.node?.elementType != AamTokenTypes.RBRACE) {
+                return ChildAttributes(Indent.getNormalIndent(), null)
+            }
+        }
         return ChildAttributes(Indent.getNoneIndent(), null)
     }
+
+    override fun getSpacing(child1: Block?, child2: Block): Spacing? =
+        mySpacingBuilder.getSpacing(this, child1, child2)
+
+    override fun isLeaf(): Boolean = myNode.firstChildNode == null
 }

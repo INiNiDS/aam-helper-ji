@@ -2,7 +2,6 @@ package com.ininids.aamhelper.language
 
 import com.intellij.codeInsight.completion.*
 import com.intellij.codeInsight.lookup.LookupElementBuilder
-import com.intellij.openapi.editor.EditorModificationUtil
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.util.ProcessingContext

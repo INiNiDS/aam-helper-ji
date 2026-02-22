@@ -189,6 +189,11 @@ class AamLexer : LexerBase() {
         if (currentState == 1) {
             if (firstChar == '\n' || firstChar == '#') {
                 currentState = 0
+            } else if (Character.isWhitespace(firstChar)) {
+                tokenEnd++
+                while (tokenEnd < endOffset && Character.isWhitespace(buffer[tokenEnd]) && buffer[tokenEnd] != '\n') tokenEnd++
+                tokenType = TokenType.WHITE_SPACE
+                return
             } else {
                 var inQuote = false
                 var quoteChar = '\u0000'
@@ -338,7 +343,7 @@ class AamLexer : LexerBase() {
         if (firstChar == '=') {
             tokenEnd++
             currentState = 1
-            tokenType = TokenType.WHITE_SPACE
+            tokenType = AamTokenTypes.EQUALS
             return
         }
 

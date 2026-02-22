@@ -22,6 +22,7 @@ class AamSyntaxHighlighter : SyntaxHighlighterBase() {
         val BRACE_KEY = createTextAttributesKey("AAM_BRACE", DefaultLanguageHighlighterColors.BRACES)
         val COLON_KEY = createTextAttributesKey("AAM_COLON", DefaultLanguageHighlighterColors.OPERATION_SIGN)
         val COMMA_KEY = createTextAttributesKey("AAM_COMMA", DefaultLanguageHighlighterColors.COMMA)
+        val EQUALS_KEY = createTextAttributesKey("AAM_EQUALS", DefaultLanguageHighlighterColors.OPERATION_SIGN)
         val BAD_CHARACTER = createTextAttributesKey("AAM_BAD_CHARACTER", HighlighterColors.BAD_CHARACTER)
 
         val TYPE_ALIAS_KEY = createTextAttributesKey("AAM_TYPE_ALIAS", DefaultLanguageHighlighterColors.CLASS_NAME)
@@ -41,6 +42,7 @@ class AamSyntaxHighlighter : SyntaxHighlighterBase() {
         private val BRACE_KEYS = arrayOf(BRACE_KEY)
         private val COLON_KEYS = arrayOf(COLON_KEY)
         private val COMMA_KEYS = arrayOf(COMMA_KEY)
+        private val EQUALS_KEYS = arrayOf(EQUALS_KEY)
         private val EMPTY_KEYS = arrayOf<TextAttributesKey>()
     }
 
@@ -65,6 +67,7 @@ class AamSyntaxHighlighter : SyntaxHighlighterBase() {
             AamTokenTypes.LBRACE, AamTokenTypes.RBRACE -> BRACE_KEYS
             AamTokenTypes.COLON -> COLON_KEYS
             AamTokenTypes.COMMA -> COMMA_KEYS
+            AamTokenTypes.EQUALS -> EQUALS_KEYS
             TokenType.BAD_CHARACTER -> BAD_CHAR_KEYS
             else -> EMPTY_KEYS
         }

@@ -14,6 +14,7 @@ class AamElementType(@NonNls debugName: String) : IElementType(debugName, AamLan
 object AamTokenTypes {
     val KEY = AamTokenType("KEY")
     val VALUE = AamTokenType("VALUE")
+    val EQUALS = AamTokenType("EQUALS")
     val COMMENT = AamTokenType("COMMENT")
     val IMPORT_KEYWORD = AamTokenType("IMPORT_KEYWORD")
     val DERIVE_KEYWORD = AamTokenType("DERIVE_KEYWORD")

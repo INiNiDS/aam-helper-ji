@@ -14,6 +14,9 @@ class AamParser : PsiParser {
                 AamTokenTypes.KEY -> {
                     val propertyMarker = builder.mark()
                     builder.advanceLexer()
+                    if (builder.tokenType == AamTokenTypes.EQUALS) {
+                        builder.advanceLexer()
+                    }
                     if (builder.tokenType == AamTokenTypes.VALUE) {
                         builder.advanceLexer()
                     }

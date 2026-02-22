@@ -5,17 +5,16 @@
 
     <!-- Public plugin name should be written in Title Case.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/best-practices-for-listing.html#plugin-name -->
-    <name>Aam-helper</name>
+    <name>Aam-Helper</name>
 
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
-    <vendor url="https://www.yourcompany.com">YourCompany</vendor>
+    <vendor url="https://ininids.in.rs">INiNiDS</vendor>
 
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/best-practices-for-listing.html#plugin-description -->
     <description><![CDATA[
-        Enter short description for your plugin here.<br>
-        <em>most HTML tags may be used</em>
-    ]]></description>
+        A small plugin to help with AAM files. It provides syntax highlighting, code completion, and a tool window for easy access to AAM-related features.
+    ]]></description>s
 
     <!-- Product and plugin compatibility requirements.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
@@ -40,5 +39,6 @@
         <lang.formatter language="AAM" implementationClass="com.ininids.aamhelper.language.AamFormattingModelBuilder"/>
         <lang.commenter language="AAM" implementationClass="com.ininids.aamhelper.language.AamCommenter"/>
         <breadcrumbsInfoProvider implementation="com.ininids.aamhelper.language.AamBreadcrumbsProvider"/>
+        <enterHandlerDelegate implementation="com.ininids.aamhelper.language.AamEnterHandler"/>
     </extensions>
 </idea-plugin>

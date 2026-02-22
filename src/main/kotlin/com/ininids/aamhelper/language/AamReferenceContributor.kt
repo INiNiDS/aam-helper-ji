@@ -29,12 +29,14 @@ class AamFileReference(element: PsiElement, textRange: TextRange) :
     override fun resolve(): PsiElement? {
         val fileName = element.text
         val project = element.project
-        val files = com.intellij.psi.search.FilenameIndex.getFilesByName(
-            project,
+
+        val virtualFiles = com.intellij.psi.search.FilenameIndex.getVirtualFilesByName(
             fileName,
             com.intellij.psi.search.GlobalSearchScope.allScope(project)
         )
-        return files.firstOrNull()
+
+        val virtualFile = virtualFiles.firstOrNull() ?: return null
+        return PsiManager.getInstance(project).findFile(virtualFile)
     }
 
     override fun getVariants(): Array<Any> {
