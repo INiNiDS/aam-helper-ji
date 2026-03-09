@@ -3,7 +3,9 @@ package com.ininids.aamhelper.language
 import com.intellij.codeInsight.completion.*
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.patterns.PlatformPatterns
+import com.intellij.psi.PsiManager
 import com.intellij.psi.search.FilenameIndex
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.ProcessingContext
 
 private val PRIMITIVE_TYPES = listOf("i32", "f64", "string", "bool", "color")
@@ -70,7 +72,6 @@ private val ALL_TYPES = PRIMITIVE_TYPES + MATH_TYPES + TIME_TYPES + PHYSICS_TYPE
 
 class AamCompletionContributor : CompletionContributor() {
     init {
-        // Complete directive keywords when typing a KEY token
         extend(
             CompletionType.BASIC,
             PlatformPatterns.psiElement(AamTokenTypes.KEY),
@@ -80,23 +81,15 @@ class AamCompletionContributor : CompletionContributor() {
                     context: ProcessingContext,
                     result: CompletionResultSet
                 ) {
-                    // Build a handler that replaces the entire KEY token text (e.g. "@") with the directive
                     val insertHandler = InsertHandler<com.intellij.codeInsight.lookup.LookupElement> { ctx, item ->
                         val doc = ctx.document
-                        val startOffset = ctx.startOffset
                         val tailOffset = ctx.tailOffset
-                        // Replace the full range that was originally the KEY token
                         val tokenStart = parameters.position.textRange.startOffset
-                        val tokenEnd = parameters.position.textRange.endOffset - 1 // -1 for dummy suffix
                         doc.replaceString(tokenStart, tailOffset, item.lookupString)
                         ctx.editor.caretModel.moveToOffset(tokenStart + item.lookupString.length)
                     }
-
                     val directives = listOf("@import", "@derive", "@schema", "@type")
-                    // The position text contains the dummy completion identifier appended by IDE
-                    val rawText = parameters.position.text
-                    val typed = rawText.removeSuffix(CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED)
-
+                    val typed = parameters.position.text.removeSuffix(CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED)
                     val prefixResult = result.withPrefixMatcher(typed)
                     directives.forEach { directive ->
                         prefixResult.addElement(
@@ -109,7 +102,6 @@ class AamCompletionContributor : CompletionContributor() {
             }
         )
 
-        // Complete .aam file paths for @import / @derive FILE_PATH tokens
         extend(
             CompletionType.BASIC,
             PlatformPatterns.psiElement(AamTokenTypes.FILE_PATH),
@@ -120,17 +112,13 @@ class AamCompletionContributor : CompletionContributor() {
                     result: CompletionResultSet
                 ) {
                     val project = parameters.originalFile.project
-                    val allFilenames = FilenameIndex.getAllFilenames(project)
-                    for (filename in allFilenames) {
-                        if (filename.endsWith(".aam")) {
-                            result.addElement(LookupElementBuilder.create(filename))
-                        }
+                    for (filename in FilenameIndex.getAllFilenames(project)) {
+                        if (filename.endsWith(".aam")) result.addElement(LookupElementBuilder.create(filename))
                     }
                 }
             }
         )
 
-        // Complete known schema field types (including math::, time::, physics::)
         extend(
             CompletionType.BASIC,
             PlatformPatterns.psiElement(AamTokenTypes.FIELD_TYPE),
@@ -141,19 +129,18 @@ class AamCompletionContributor : CompletionContributor() {
                     result: CompletionResultSet
                 ) {
                     val file = parameters.originalFile
-                    // Also suggest @type aliases defined in this file
-                    val aliases = com.intellij.psi.util.PsiTreeUtil
-                        .getChildrenOfTypeAsList(file, AamTypeDeclaration::class.java)
+                    val aliases = PsiTreeUtil.getChildrenOfTypeAsList(file, AamTypeDeclaration::class.java)
                         .mapNotNull { it.getAliasName() }
-
-                    (ALL_TYPES + aliases).forEach {
+                    val schemaNames = PsiTreeUtil.getChildrenOfTypeAsList(file, AamSchemaDeclaration::class.java)
+                        .mapNotNull { it.getSchemaName() }
+                    val listVariants = (PRIMITIVE_TYPES + schemaNames).map { "list<$it>" }
+                    (ALL_TYPES + aliases + schemaNames + listVariants).forEach {
                         result.addElement(LookupElementBuilder.create(it))
                     }
                 }
             }
         )
 
-        // Complete base types for @type alias = <TYPE_BASE>
         extend(
             CompletionType.BASIC,
             PlatformPatterns.psiElement(AamTokenTypes.TYPE_BASE),
@@ -163,9 +150,31 @@ class AamCompletionContributor : CompletionContributor() {
                     context: ProcessingContext,
                     result: CompletionResultSet
                 ) {
-                    ALL_TYPES.forEach {
-                        result.addElement(LookupElementBuilder.create(it))
-                    }
+                    ALL_TYPES.forEach { result.addElement(LookupElementBuilder.create(it)) }
+                }
+            }
+        )
+
+        extend(
+            CompletionType.BASIC,
+            PlatformPatterns.psiElement(AamTokenTypes.DERIVE_SCHEMA),
+            object : CompletionProvider<CompletionParameters>() {
+                override fun addCompletions(
+                    parameters: CompletionParameters,
+                    context: ProcessingContext,
+                    result: CompletionResultSet
+                ) {
+                    val deriveStatement = PsiTreeUtil.getParentOfType(
+                        parameters.position, AamDeriveStatement::class.java
+                    ) ?: return
+                    val filePath = deriveStatement.getFilePath() ?: return
+                    val currentDir = parameters.originalFile.virtualFile?.parent ?: return
+                    val targetVFile = currentDir.findFileByRelativePath(filePath) ?: return
+                    val targetPsiFile = PsiManager.getInstance(parameters.originalFile.project)
+                        .findFile(targetVFile) ?: return
+                    PsiTreeUtil.getChildrenOfTypeAsList(targetPsiFile, AamSchemaDeclaration::class.java)
+                        .mapNotNull { it.getSchemaName() }
+                        .forEach { result.addElement(LookupElementBuilder.create(it)) }
                 }
             }
         )

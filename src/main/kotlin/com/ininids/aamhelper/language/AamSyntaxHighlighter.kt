@@ -20,9 +20,14 @@ class AamSyntaxHighlighter : SyntaxHighlighterBase() {
         val FIELD_NAME_KEY = createTextAttributesKey("AAM_FIELD_NAME", DefaultLanguageHighlighterColors.INSTANCE_FIELD)
         val FIELD_TYPE_KEY = createTextAttributesKey("AAM_FIELD_TYPE", DefaultLanguageHighlighterColors.CLASS_REFERENCE)
         val BRACE_KEY = createTextAttributesKey("AAM_BRACE", DefaultLanguageHighlighterColors.BRACES)
+        val BRACKET_KEY = createTextAttributesKey("AAM_BRACKET", DefaultLanguageHighlighterColors.BRACKETS)
         val COLON_KEY = createTextAttributesKey("AAM_COLON", DefaultLanguageHighlighterColors.OPERATION_SIGN)
         val COMMA_KEY = createTextAttributesKey("AAM_COMMA", DefaultLanguageHighlighterColors.COMMA)
         val EQUALS_KEY = createTextAttributesKey("AAM_EQUALS", DefaultLanguageHighlighterColors.OPERATION_SIGN)
+        val OPTIONAL_KEY = createTextAttributesKey("AAM_OPTIONAL", DefaultLanguageHighlighterColors.OPERATION_SIGN)
+        val LIST_KEY = createTextAttributesKey("AAM_LIST", DefaultLanguageHighlighterColors.KEYWORD)
+        val ANGLE_KEY = createTextAttributesKey("AAM_ANGLE", DefaultLanguageHighlighterColors.OPERATION_SIGN)
+        val DERIVE_SCHEMA_KEY = createTextAttributesKey("AAM_DERIVE_SCHEMA", DefaultLanguageHighlighterColors.CLASS_NAME)
         val BAD_CHARACTER = createTextAttributesKey("AAM_BAD_CHARACTER", HighlighterColors.BAD_CHARACTER)
 
         val TYPE_ALIAS_KEY = createTextAttributesKey("AAM_TYPE_ALIAS", DefaultLanguageHighlighterColors.CLASS_NAME)
@@ -40,9 +45,14 @@ class AamSyntaxHighlighter : SyntaxHighlighterBase() {
         private val FIELD_NAME_KEYS = arrayOf(FIELD_NAME_KEY)
         private val FIELD_TYPE_KEYS = arrayOf(FIELD_TYPE_KEY)
         private val BRACE_KEYS = arrayOf(BRACE_KEY)
+        private val BRACKET_KEYS = arrayOf(BRACKET_KEY)
         private val COLON_KEYS = arrayOf(COLON_KEY)
         private val COMMA_KEYS = arrayOf(COMMA_KEY)
         private val EQUALS_KEYS = arrayOf(EQUALS_KEY)
+        private val OPTIONAL_KEYS = arrayOf(OPTIONAL_KEY)
+        private val LIST_KEYS = arrayOf(LIST_KEY)
+        private val ANGLE_KEYS = arrayOf(ANGLE_KEY)
+        private val DERIVE_SCHEMA_KEYS = arrayOf(DERIVE_SCHEMA_KEY)
         private val EMPTY_KEYS = arrayOf<TextAttributesKey>()
     }
 
@@ -61,13 +71,18 @@ class AamSyntaxHighlighter : SyntaxHighlighterBase() {
             AamTokenTypes.TYPE_BASE -> TYPE_BASE_KEYS
             AamTokenTypes.TYPE_EQUALS -> COLON_KEYS
             AamTokenTypes.FILE_PATH -> FILE_PATH_KEYS
+            AamTokenTypes.DERIVE_SCHEMA -> DERIVE_SCHEMA_KEYS
             AamTokenTypes.SCHEMA_NAME -> SCHEMA_NAME_KEYS
             AamTokenTypes.FIELD_NAME -> FIELD_NAME_KEYS
             AamTokenTypes.FIELD_TYPE -> FIELD_TYPE_KEYS
             AamTokenTypes.LBRACE, AamTokenTypes.RBRACE -> BRACE_KEYS
+            AamTokenTypes.LBRACKET, AamTokenTypes.RBRACKET -> BRACKET_KEYS
             AamTokenTypes.COLON -> COLON_KEYS
             AamTokenTypes.COMMA -> COMMA_KEYS
             AamTokenTypes.EQUALS -> EQUALS_KEYS
+            AamTokenTypes.OPTIONAL_MARKER -> OPTIONAL_KEYS
+            AamTokenTypes.LIST_KEYWORD -> LIST_KEYS
+            AamTokenTypes.LANGLE, AamTokenTypes.RANGLE -> ANGLE_KEYS
             TokenType.BAD_CHARACTER -> BAD_CHAR_KEYS
             else -> EMPTY_KEYS
         }

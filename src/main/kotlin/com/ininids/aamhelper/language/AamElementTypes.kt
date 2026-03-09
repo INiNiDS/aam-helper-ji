@@ -11,6 +11,8 @@ object AamElementTypes {
     val SCHEMA_DECLARATION = AamElementType("SCHEMA_DECLARATION")
     val SCHEMA_FIELD = AamElementType("SCHEMA_FIELD")
     val TYPE_DECLARATION = AamElementType("TYPE_DECLARATION")
+    val INLINE_VALUE = AamElementType("INLINE_VALUE")
+    val LIST_VALUE = AamElementType("LIST_VALUE")
 
     object Factory {
         fun createElement(node: ASTNode): PsiElement {
@@ -21,6 +23,8 @@ object AamElementTypes {
                 SCHEMA_DECLARATION -> AamSchemaDeclaration(node)
                 SCHEMA_FIELD -> AamSchemaField(node)
                 TYPE_DECLARATION -> AamTypeDeclaration(node)
+                INLINE_VALUE -> AamInlineValue(node)
+                LIST_VALUE -> AamListValue(node)
                 else -> ASTWrapperPsiElement(node)
             }
         }

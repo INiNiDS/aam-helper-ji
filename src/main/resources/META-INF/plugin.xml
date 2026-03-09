@@ -40,5 +40,6 @@
         <lang.commenter language="AAM" implementationClass="com.ininids.aamhelper.language.AamCommenter"/>
         <breadcrumbsInfoProvider implementation="com.ininids.aamhelper.language.AamBreadcrumbsProvider"/>
         <enterHandlerDelegate implementation="com.ininids.aamhelper.language.AamEnterHandler"/>
+        <gotoDeclarationHandler implementation="com.ininids.aamhelper.language.AamGotoDeclarationHandler"/>
     </extensions>
 </idea-plugin>

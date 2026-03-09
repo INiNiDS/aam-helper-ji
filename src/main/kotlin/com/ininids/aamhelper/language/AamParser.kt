@@ -13,12 +13,21 @@ class AamParser : PsiParser {
             when (tokenType) {
                 AamTokenTypes.KEY -> {
                     val propertyMarker = builder.mark()
-                    builder.advanceLexer()
+                    builder.advanceLexer() // KEY
                     if (builder.tokenType == AamTokenTypes.EQUALS) {
-                        builder.advanceLexer()
+                        builder.advanceLexer() // EQUALS
                     }
-                    if (builder.tokenType == AamTokenTypes.VALUE) {
-                        builder.advanceLexer()
+                    when (builder.tokenType) {
+                        AamTokenTypes.LBRACE -> {
+                            parseInlineValue(builder)
+                        }
+                        AamTokenTypes.LBRACKET -> {
+                            parseListValue(builder)
+                        }
+                        AamTokenTypes.VALUE -> {
+                            builder.advanceLexer()
+                        }
+                        else -> { /* empty value */ }
                     }
                     propertyMarker.done(AamElementTypes.PROPERTY)
                 }
@@ -40,6 +49,9 @@ class AamParser : PsiParser {
                     } else {
                         builder.error("Expected file path after @derive")
                     }
+                    if (builder.tokenType == AamTokenTypes.DERIVE_SCHEMA) {
+                        builder.advanceLexer()
+                    }
                     deriveMarker.done(AamElementTypes.DERIVE_STATEMENT)
                 }
                 AamTokenTypes.SCHEMA_KEYWORD -> {
@@ -51,28 +63,41 @@ class AamParser : PsiParser {
                         builder.error("Expected schema name after @schema")
                     }
                     if (builder.tokenType == AamTokenTypes.LBRACE) {
-                        builder.advanceLexer() // consume '{'
-                        // parse fields
+                        builder.advanceLexer()
                         while (!builder.eof() && builder.tokenType != AamTokenTypes.RBRACE) {
                             if (builder.tokenType == AamTokenTypes.FIELD_NAME) {
                                 val fieldMarker = builder.mark()
-                                builder.advanceLexer() // FIELD_NAME
-                                if (builder.tokenType == AamTokenTypes.COLON) {
-                                    builder.advanceLexer() // COLON
+                                builder.advanceLexer()
+                                if (builder.tokenType == AamTokenTypes.OPTIONAL_MARKER) {
+                                    builder.advanceLexer()
                                 }
-                                if (builder.tokenType == AamTokenTypes.FIELD_TYPE) {
-                                    builder.advanceLexer() // FIELD_TYPE
+                                if (builder.tokenType == AamTokenTypes.COLON) {
+                                    builder.advanceLexer()
+                                }
+                                if (builder.tokenType == AamTokenTypes.LIST_KEYWORD) {
+                                    builder.advanceLexer()
+                                    if (builder.tokenType == AamTokenTypes.LANGLE) {
+                                        builder.advanceLexer()
+                                    }
+                                    if (builder.tokenType == AamTokenTypes.FIELD_TYPE) {
+                                        builder.advanceLexer()
+                                    }
+                                    if (builder.tokenType == AamTokenTypes.RANGLE) {
+                                        builder.advanceLexer()
+                                    }
+                                } else if (builder.tokenType == AamTokenTypes.FIELD_TYPE) {
+                                    builder.advanceLexer()
                                 }
                                 fieldMarker.done(AamElementTypes.SCHEMA_FIELD)
                                 if (builder.tokenType == AamTokenTypes.COMMA) {
-                                    builder.advanceLexer() // COMMA
+                                    builder.advanceLexer()
                                 }
                             } else {
                                 builder.advanceLexer()
                             }
                         }
                         if (builder.tokenType == AamTokenTypes.RBRACE) {
-                            builder.advanceLexer() // consume '}'
+                            builder.advanceLexer()
                         } else {
                             builder.error("Expected '}' to close schema")
                         }
@@ -84,7 +109,7 @@ class AamParser : PsiParser {
                 AamTokenTypes.COMMENT -> builder.advanceLexer()
                 AamTokenTypes.TYPE_KEYWORD -> {
                     val typeMarker = builder.mark()
-                    builder.advanceLexer() // consume @type
+                    builder.advanceLexer()
                     if (builder.tokenType == AamTokenTypes.TYPE_ALIAS) {
                         builder.advanceLexer()
                     } else {
@@ -107,5 +132,65 @@ class AamParser : PsiParser {
         }
         rootMarker.done(root)
         return builder.treeBuilt
+    }
+
+    /**
+     * Parses an inline object value: `{ key = value, key2 = { ... }, ... }`
+     * The opening LBRACE has NOT been consumed yet.
+     */
+    private fun parseInlineValue(builder: PsiBuilder) {
+        val marker = builder.mark()
+        builder.advanceLexer() // consume '{'
+        var depth = 1
+        while (!builder.eof() && depth > 0) {
+            when (builder.tokenType) {
+                AamTokenTypes.LBRACE -> {
+                    parseInlineValue(builder)
+                }
+                AamTokenTypes.RBRACE -> {
+                    depth--
+                    builder.advanceLexer()
+                }
+                AamTokenTypes.KEY -> {
+                    builder.advanceLexer() // key
+                    if (builder.tokenType == AamTokenTypes.EQUALS) {
+                        builder.advanceLexer()
+                    }
+                    // value could be scalar KEY/VALUE token or a nested inline object
+                    when (builder.tokenType) {
+                        AamTokenTypes.LBRACE -> parseInlineValue(builder)
+                        AamTokenTypes.KEY, AamTokenTypes.VALUE -> builder.advanceLexer()
+                        else -> { /* nothing */ }
+                    }
+                }
+                AamTokenTypes.COMMA -> builder.advanceLexer()
+                AamTokenTypes.COMMENT -> builder.advanceLexer()
+                else -> builder.advanceLexer()
+            }
+        }
+        marker.done(AamElementTypes.INLINE_VALUE)
+    }
+
+    /**
+     * Parses a list value: `[ item1, item2, item3 ]`
+     * The opening LBRACKET has NOT been consumed yet.
+     */
+    private fun parseListValue(builder: PsiBuilder) {
+        val marker = builder.mark()
+        builder.advanceLexer() // consume '['
+        while (!builder.eof() && builder.tokenType != AamTokenTypes.RBRACKET) {
+            when (builder.tokenType) {
+                AamTokenTypes.VALUE, AamTokenTypes.KEY -> builder.advanceLexer()
+                AamTokenTypes.COMMA -> builder.advanceLexer()
+                AamTokenTypes.COMMENT -> builder.advanceLexer()
+                else -> builder.advanceLexer()
+            }
+        }
+        if (builder.tokenType == AamTokenTypes.RBRACKET) {
+            builder.advanceLexer()
+        } else {
+            builder.error("Expected ']' to close list")
+        }
+        marker.done(AamElementTypes.LIST_VALUE)
     }
 }

@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.ininids"
-version = "1.0-SNAPSHOT"
+version = "1.0-SNAPSHOT-2026.03.09"
 
 repositories {
     mavenCentral()
